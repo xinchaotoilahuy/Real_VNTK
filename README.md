@@ -1,2 +1,2 @@
 # Real_VNTK
-hello
+Đây là script kaitun chứ ko phải Main đâu

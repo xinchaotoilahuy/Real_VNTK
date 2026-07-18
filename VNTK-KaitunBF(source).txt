@@ -1,28 +1,5 @@
 timeee = os.time()
 
-Config = {
-    -- "Pirates" or "Marines"
-    Team = "Marines",
-    Configuration = {
-        HopWhenIdle = true,
-        AutoHop = true,
-        AutoHopDelay = 3,
-        FpsBoost = true,
-        blackscreen = true,          
-    },
-    Items = {
-        AutoFullyMelees = true,
-        Saber = true,
-        CursedDualKatana = true,
-        SoulGuitar = true,
-        RaceV2 = true,
-    },
-    Settings = {
-        StayInSea2UntilHaveDarkFragments = true,
-        --(dùng cho Soul Guitar, ...)
-    }
-}
-
 repeat task.wait() until game:IsLoaded()
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

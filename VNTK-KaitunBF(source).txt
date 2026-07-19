@@ -40,6 +40,26 @@ _G.currentFPS = 0
 _G.currentPing = "N/A"
 _G.refreshDisplay = nil
 _G.RefreshAccountItems = nil
+_G.SavedMelees = _G.SavedMelees or {}
+
+-- Khai báo biến toàn cục cần thiết
+TweenDebounce = false
+TweenInstance = nil
+GodHumanFlag = false
+SpecialItems = nil
+BonesCooldown = 0
+ForceToRollBone = false
+IsFireEssenceGave = false
+LastFire12 = 0
+SpawnReflect = 0
+AnimationDelay = 0
+EnablingBurstDebounce = 0
+FarmFruitMastery = 0
+
+-- Hàm giả cho LockAimPositionTo nếu chưa có
+if not LockAimPositionTo then
+    LockAimPositionTo = function() end
+end
 
 local function CreateUI()
     local MainFrame = Instance.new('Frame')
@@ -567,11 +587,11 @@ function VNTKLOGIC()
     if not isfile("fluent.lua") then
         writefile('fluent.lua', game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))
     end
-    local J = loadstring(readfile('fluent.lua'))()
-    local K = Instance.new('Animation')
-    K.AnimationId = 'http://www.roblox.com/asset/?id=1elutruahuabuahd'
+    local Fluent = loadstring(readfile('fluent.lua'))()
+    local Anim = Instance.new('Animation')
+    Anim.AnimationId = 'http://www.roblox.com/asset/?id=1elutruahuabuahd'
     getgenv().alert = function(a, h)
-        pcall(function() J:Notify({Title = a or '', Content = h or '', Duration = 5}) end)
+        pcall(function() Fluent:Notify({Title = a or '', Content = h or '', Duration = 5}) end)
     end
     OldSessionTime = isfile('.tdif-' .. game.Players.LocalPlayer.Name) and tonumber(readfile(".tdif-" .. game.Players.LocalPlayer.Name)) or 0
     repeat
@@ -584,12 +604,29 @@ function VNTKLOGIC()
         game:GetService("Players")
         LocalPlayer.PlayerScripts:WaitForChild('IslandLOD', 9999):Destroy()
     end)
-    local J = {'RawConstants', "Utilly", "QuestManager", 'SpawnRegionLoader', 'TweenController', "AttackController", 'CombatController', 'FunctionsHandler', "Hooks", "Debug", "Hop", "Storage"}
+    local ModuleNames = {'RawConstants', "Utilly", "QuestManager", 'SpawnRegionLoader', 'TweenController', "AttackController", 'CombatController', 'FunctionsHandler', "Hooks", "Debug", "Hop", "Storage"}
     StartTick = tick()
     repeat task.wait() until SetText
     SetText('MainTextLabel', 'Initalizing Script..')
-    local J = "Rua_Hub/Blox_Fruit/Assets/"
-    ScriptStorage = {IsInitalized = false, PlayerData = {}, Melees = {}, CurrentMeleeData = {}, Enemies = {}, Tools = {}, Backpack = {}, IgnoreStoreFruits = {}, Connections = {LocalPlayer = {}}, Task = {}, Tracebacks = {}, TaskController = {}, TracebackUpdater = {}, Interface = W, NPCs = {}, Map = {}}
+    local Junk = "Rua_Hub/Blox_Fruit/Assets/"
+    ScriptStorage = {
+        IsInitalized = false,
+        PlayerData = {},
+        Melees = _G.SavedMelees,
+        CurrentMeleeData = {},
+        Enemies = {},
+        Tools = {},
+        Backpack = {},
+        IgnoreStoreFruits = {},
+        Connections = {LocalPlayer = {}},
+        Task = {},
+        Tracebacks = {},
+        TaskController = {},
+        TracebackUpdater = {},
+        Interface = W,
+        NPCs = {},
+        Map = {}
+    }
     Players = game.Players
     LocalPlayer = Players.LocalPlayer
     Character = Players.LocalPlayer.Character
@@ -621,7 +658,7 @@ function VNTKLOGIC()
 
     Remotes = {}
     BindedMeleeNPCNames = {BlackLeg = 'Dark Step Teacher', Electro = "Mad Scientist", FishmanKarate = "Water Kung-fu Teacher", DeathStep = "Phoeyu, the Reformed", SharkmanKarate = 'Sharkman Teacher', DragonTalon = "Uzoth", ElectricClaw = 'Previous Hero', Godhuman = "Ancient Monk"}
-    local J = {}
+    local boughtMelees = {}
     setmetatable(Remotes, {__index = function(W, W)
         if W ~= 'CommF_' then
             return Services.ReplicatedStorage.Remotes[W]
@@ -631,7 +668,7 @@ function VNTKLOGIC()
             if string.find(a, "Buy") == 1 and not h then
                 local h = string.gsub(a, 'Buy', "")
                 if BindedMeleeNPCNames then
-                    if table.find(J, h) then
+                    if table.find(boughtMelees, h) then
                         local a = ScriptStorage.NPCs[BindedMeleeNPCNames[h]]
                         if a then
                             local h = a.WorldPivot
@@ -701,9 +738,9 @@ function VNTKLOGIC()
         if _G.refreshDisplay then _G.refreshDisplay() end
     end
     function RefreshInventory()
-        ScriptStorage.Backpack2 = {}
-        for W, W in Remotes.CommF_:InvokeServer('getInventory') do ScriptStorage.Backpack2[W.Name] = W end
-        ScriptStorage.Backpack = ScriptStorage.Backpack2
+        local BackpackTemp = {}
+        for W, W in Remotes.CommF_:InvokeServer('getInventory') do BackpackTemp[W.Name] = W end
+        ScriptStorage.Backpack = BackpackTemp
         if _G.RefreshAccountItems then _G.RefreshAccountItems() end
     end
     function ResearchMoves(W)
@@ -745,9 +782,19 @@ function VNTKLOGIC()
                 pcall(function() ScriptStorage.Connections.Melees:Destroy() end)
                 ScriptStorage.Connections.Melees = W.Level.Changed:Connect(function(a)
                     ScriptStorage.Melees[W.Name] = a
+                    _G.SavedMelees[W.Name] = a
+                    if Storage and Storage.Set then
+                        Storage:Set("MeleeMasteries", _G.SavedMelees)
+                        Storage:Save()
+                    end
                     RefreshMelees()
                 end)
                 ScriptStorage.Melees[W.Name] = W.Level.Value
+                _G.SavedMelees[W.Name] = W.Level.Value
+                if Storage and Storage.Set then
+                    Storage:Set("MeleeMasteries", _G.SavedMelees)
+                    Storage:Save()
+                end
                 RefreshMelees()
             elseif string.find(tostring(W), "Fruit") then
                 task.spawn(function()
@@ -757,6 +804,32 @@ function VNTKLOGIC()
             end
         end
     end
+
+    -- ===== KHỞI TẠO STORAGE SỚM =====
+    Storage = {WRITE_DELAY = .5, Data = {}}
+    Services = {}
+    setmetatable(Services, {__index = function(k, k) return game:GetService(k) end})
+    LocalPlayer = game.Players.LocalPlayer
+    local StorageFile = ".storage_u_" .. tostring(LocalPlayer)
+    function Decode(W) return Services.HttpService:JSONDecode(W) end
+    function Encode(W) return Services.HttpService:JSONEncode(W) end
+    function Storage.Set(W, h, X) W.Data[h] = X end
+    function Storage.Get(W, h) return W.Data[h] end
+    function Storage.Save(W) writefile(StorageFile, Encode(W.Data)) end
+    if not isfile(StorageFile) then
+        writefile(StorageFile, "{}")
+        task.wait(1)
+    end
+    Storage.Data = {}
+    pcall(function() Storage.Data = Decode(readfile(StorageFile) or '{}') end)
+
+    if Storage:Get("MeleeMasteries") then
+        _G.SavedMelees = Storage:Get("MeleeMasteries")
+        ScriptStorage.Melees = _G.SavedMelees
+    end
+
+    spawn(function() while task.wait(Storage.WRITE_DELAY) do Storage:Save() end end)
+
     SetText('MainTextLabel', 'Refreshing Player Data')
     MeleeCheck(LocalPlayer.Character:FindFirstChildOfClass('Tool'))
     RefreshPlayerData()
@@ -778,7 +851,7 @@ function VNTKLOGIC()
         end)
         ScriptStorage.Connections.LocalPlayer['Melee'] = LocalPlayer.Character.ChildAdded:Connect(MeleeCheck)
         ScriptStorage.Connections.LocalPlayer['Fruit'] = LocalPlayer.Backpack.ChildAdded:Connect(MeleeCheck)
-        table.foreach(LocalPlayer.Backpack:GetChildren(), function(W, W) MeleeCheck(W) end)
+        for _, tool in ipairs(LocalPlayer.Backpack:GetChildren()) do MeleeCheck(tool) end
         LastIdleCheck = os.time()
         ScriptStorage.Connections.LocalPlayer.PositionChecker = LocalPlayer.Character.HumanoidRootPart:GetPropertyChangedSignal('CFrame'):Connect(function()
             if os.time() == LastIdleCheck then return end
@@ -908,14 +981,14 @@ function VNTKLOGIC()
     function BuyMelee(W, a)
         if W == "DragonClaw" and workspace.NPCs:FindFirstChild('Sabi') then
             if a then
-                if type(Remotes.CommF_:InvokeServer("BlackbeardReward", 'DragonClaw', '1') == 1) == "number" and Remotes.CommF_:InvokeServer('BlackbeardReward', 'DragonClaw', '1') == 1 == 1 and not table.find(J, W) then table.insert(J, W) end
+                if type(Remotes.CommF_:InvokeServer("BlackbeardReward", 'DragonClaw', '1') == 1) == "number" and Remotes.CommF_:InvokeServer('BlackbeardReward', 'DragonClaw', '1') == 1 == 1 and not table.find(boughtMelees, W) then table.insert(boughtMelees, W) end
                 return Remotes.CommF_:InvokeServer("BlackbeardReward", "DragonClaw", "1")
             end
             return Remotes.CommF_:InvokeServer('BlackbeardReward', "DragonClaw", '2')
         end
         if a then
             local a = Remotes.CommF_:InvokeServer('Buy' .. W, true)
-            if type(a) == 'number' and not table.find(J, W) then table.insert(J, W) end
+            if type(a) == 'number' and not table.find(boughtMelees, W) then table.insert(boughtMelees, W) end
             return a == 1
         end
         return Remotes.CommF_:InvokeServer("Buy" .. W)
@@ -1016,8 +1089,7 @@ function VNTKLOGIC()
         end
         if X then
             Remotes.CommF_:InvokeServer("requestEntrance", X)
-            task.wait()
-            task.wait(1)
+            return task.wait()
         end
     end
     function GetEntries(a)
@@ -1059,7 +1131,7 @@ function VNTKLOGIC()
             if CaculateDistance(W) > 60 then return TweenController.Create(W) and task.wait(1) end
             local W = require(game.ReplicatedStorage.Modules.Net)
             W:RemoteFunction('SubmarineWorkerSpeak'):InvokeServer('TravelToSubmergedIsland')
-            task.wait(1)
+task.wait(1)
         end
         a = CFrame.new(a.Position)
         local W = CaculateDistance(game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame, a)
@@ -1500,6 +1572,7 @@ function VNTKLOGIC()
             LastTravel = os.time()
             if X >= 1500 and SeaIndex == 2 then
                 if Config.Settings.StayInSea2UntilHaveDarkFragments and not ScriptStorage.Backpack['Dark Fragment'] then
+                    SetTask('MainTask', 'Waiting for Dark Fragment to travel to Sea 3')
                 elseif not Services.Workspace.Map.IceCastle.Hall.LibraryDoor:FindFirstChild('PhoeyuDoor') then
                     Remotes.CommF_:InvokeServer("TravelZou")
                     SetTask('MainTask', 'Sea Travel | Teleporting to Third Sea')
@@ -1707,7 +1780,7 @@ function VNTKLOGIC()
         for h, X in MeleesTable do
             if X ~= "SanguineArt" then
                 if not Config.Items.AutoFullyMelees then break end
-                Data = MeleePrices[X]
+                local Data = MeleePrices[X]
                 local w = CanPurchase[X]
                 if not w then
                     CanPurchase[X] = Data.Buy(1)
@@ -1818,32 +1891,43 @@ function VNTKLOGIC()
             ScriptStorage.ForceToUseSword = FarmingItem
         end
     end)
+
     FunctionsHandler.SecondSeaPuzzle:RegisterMethod('Refresh', function()
         if ScriptStorage.PlayerData.Level < 700 or SeaIndex ~= 1 then return end
         if FunctionsHandler.SecondSeaPuzzle:Get('IsCompleted') then return end
-        local k = Remotes.CommF_:InvokeServer('DressrosaQuestProgress')
-        if not k.TalkedDetective then Result = 1
-        elseif not k.KilledIceBoss then
-            if ScriptStorage.Enemies.Jeremy then Result = 2 end
+
+        local progress = Remotes.CommF_:InvokeServer("DressrosaQuestProgress")
+        if not progress then return end
+
+        local result = nil
+        if not progress.TalkedDetective then
+            result = 1
+        elseif not progress.KilledIceBoss then
+            result = 2
         else
             FunctionsHandler.SecondSeaPuzzle:Set("IsCompleted", true)
+            result = nil
         end
-        FunctionsHandler.SecondSeaPuzzle:Set("CurrentProgressLevel", Result)
-        FunctionsHandler.SecondSeaPuzzle:Set('LastestRefreshSenque', os.time())
-        return Result
+
+        FunctionsHandler.SecondSeaPuzzle:Set("CurrentProgressLevel", result)
+        FunctionsHandler.SecondSeaPuzzle:Set("LastestRefreshSenque", os.time())
+        return result
     end)
+
     FunctionsHandler.SecondSeaPuzzle:RegisterMethod("Start", function()
         local progress = Remotes.CommF_:InvokeServer("DressrosaQuestProgress")
         if not progress then
             SetTask('MainTask', 'Second Sea Puzzle | Error: Cannot get progress')
             return
         end
+
         if progress.KilledIceBoss then
             SetTask('MainTask', 'Second Sea Puzzle | Teleporting to Dressrosa')
             Remotes.CommF_:InvokeServer("TravelDressrosa")
             FunctionsHandler.SecondSeaPuzzle:Set("IsCompleted", true)
             return
         end
+
         if not progress.TalkedDetective then
             SetTask('MainTask', 'Second Sea Puzzle | Talking to Detective')
             Remotes.CommF_:InvokeServer('DressrosaQuestProgress', 'Detective')
@@ -1852,12 +1936,14 @@ function VNTKLOGIC()
             task.wait(1)
             return FunctionsHandler.SecondSeaPuzzle.Methods.Start:Call()
         end
+
         if not progress.KilledIceBoss then
             SetTask('MainTask', 'Second Sea Puzzle | Defeating Ice Admiral')
             Remotes.CommF_:InvokeServer('DressrosaQuestProgress', 'Detective')
             task.wait(1)
             Remotes.CommF_:InvokeServer('DressrosaQuestProgress', 'UseKey')
             task.wait(1)
+
             local boss = nil
             for _, v in pairs(workspace.Enemies:GetChildren()) do
                 if v.Name == "Ice Admiral" and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
@@ -1865,6 +1951,7 @@ function VNTKLOGIC()
                     break
                 end
             end
+
             if boss then
                 CombatController.Attack("Ice Admiral")
                 local timeout = os.time() + 120
@@ -1881,16 +1968,20 @@ function VNTKLOGIC()
                 task.wait(2)
                 return FunctionsHandler.SecondSeaPuzzle.Methods.Start:Call()
             end
+
             return FunctionsHandler.SecondSeaPuzzle.Methods.Start:Call()
         end
+
         SetTask('MainTask', 'Second Sea Puzzle | Unknown state, retrying...')
         task.wait(2)
         FunctionsHandler.SecondSeaPuzzle.Methods.Start:Call()
     end)
+
     FunctionsHandler.ColosseumPuzzle:RegisterMethod("Refresh", function()
         if SeaIndex ~= 2 then return end
         if ScriptStorage.PlayerData.Level < 850 or ScriptStorage.Backpack['Warrior Helmet'] then return end
         local k = Remotes.CommF_:InvokeServer("BartiloQuestProgress")
+        local Result
         if not k.KilledBandits then Result = 1
         elseif not k.KilledSpring then
             if ScriptStorage.Enemies.Jeremy then Result = 2 end
@@ -2318,7 +2409,7 @@ function VNTKLOGIC()
                 task.wait()
                 TweenController.Create(CFrame.new(-12548.0, 332.378 + math.random(-2.0, 2), -7617.0))
             until CaculateDistance(CFrame.new(-12548.0, 332.378, -7617.0)) < 30
-            Data = MeleePrices["Electric Claw"]
+            local Data = MeleePrices["Electric Claw"]
             Data.Buy(1)
             FunctionsHandler.LocalPlayerController.Methods.EquipTool:Call('Melee')
         elseif k == "Uzoth" then
@@ -2373,6 +2464,7 @@ function VNTKLOGIC()
     FunctionsHandler.ThirdSeaPuzzle:RegisterMethod('Start', function()
         local k = FunctionsHandler.ThirdSeaPuzzle:Get("State")
         if k then
+            SetTask('MainTask', 'Third Sea Puzzle | Starting Z Quest...')
             repeat
                 task.wait(1)
                 Remotes.CommF_:InvokeServer("ZQuestProgress", "Begin")
@@ -2381,7 +2473,10 @@ function VNTKLOGIC()
                 task.wait(30)
                 LocalPlayer:Kick()
             end)
-            while task.wait() do CombatController.Attack("rip_indra") end
+            SetTask('MainTask', 'Third Sea Puzzle | Defeating rip_indra')
+            while task.wait() do 
+                CombatController.Attack("rip_indra") 
+            end
         end
     end)
     FunctionsHandler.Yama:RegisterMethod('Refresh', function()
@@ -2393,6 +2488,7 @@ function VNTKLOGIC()
         if FunctionsHandler.Yama:Get('EliteCount') >= 30 then return true end
     end)
     FunctionsHandler.Yama:RegisterMethod("Start", function()
+        SetTask('MainTask', 'Yama Quest | Getting Yama')
         repeat
             task.wait()
             TweenController.Create(game:GetService("ReplicatedStorage").FakeIslands.Waterfall:GetModelCFrame())
@@ -2558,12 +2654,14 @@ function VNTKLOGIC()
     end)
     FunctionsHandler.Tushita:RegisterMethod('Start', function(k)
         if k == 1 then
+            SetTask('MainTask', 'Tushita Quest | Placing Torches')
             TweenController.Create(CFrame.new(5714, math.random(19, 21), 256))
             if ScriptStorage.Tools["Holy Torch"] then
                 for W = 1, 5 do Remotes.CommF_:InvokeServer("TushitaProgress", "Torch", W) end
                 return true
             end
         elseif k == 2 then
+            SetTask('MainTask', 'Tushita Quest | Defeating Longma')
             CombatController.Attack("Longma")
         end
     end)
@@ -2710,7 +2808,6 @@ function VNTKLOGIC()
                 CombatController.Attack(FunctionsHandler.CursedDualKatana.Methods.GetHazeMon:Call())
                 CdkProgess = nil
             elseif k[2] == 3 then
-                Report("found cdk yama 3")
                 while not (os.time() - TorchEnabledTime < 100 or not ScriptStorage.Enemies["Soul Reaper"]) do
                     task.wait()
                     if FunctionsHandler.RaidController.Methods.GetCurrentRaidIsland:Call() then
@@ -2748,7 +2845,6 @@ function VNTKLOGIC()
                     CombatController.Attack("Cage Queen")
                 until os.time() - TorchEnabledTime < 10 or not ScriptStorage.Enemies['Cake Queen']
                 TweenController.Create(LocalPlayer.Character.HumanoidRootPart.CFrame)
-                Report('Cake Queen')
                 FunctionsHandler.CursedDualKatana.Methods.DoDimension.Callback("Heavenly Dimension")
                 CdkProgess = nil
             end
@@ -2816,7 +2912,7 @@ function VNTKLOGIC()
         for h = 1, #X do
             while task.wait() do
                 local h = math.random(1, #X)
-                ServerData = X[h]
+                local ServerData = X[h]
                 if ServerData then
                     if not k or ServerData.Players < k then
                         if not W or ServerData.Region == W then
@@ -2834,7 +2930,7 @@ function VNTKLOGIC()
         local h = game:GetService("HttpService"):JSONDecode(W)
         if h and h.data then
             for W, W in next, h.data do
-                if type(W) == "table" and tonumber(W.playing) and tonumber(W.maxPlayers) and W.playing < 5 and W.id ~= JobId then
+                if type(W) == "table" and tonumber(W.playing) and tonumber(W.maxPlayers) and W.playing < 5 and W.id ~= game.JobId then
                     table.insert(k, 1, W.id)
                 end
             end
@@ -2845,23 +2941,7 @@ function VNTKLOGIC()
             return
         end
     end
-    Storage = {WRITE_DELAY = .5, Data = {}}
-    Services = {}
-    setmetatable(Services, {__index = function(k, k) return game:GetService(k) end})
-    LocalPlayer = game.Players.LocalPlayer
-    local k = ".storage_u_" .. tostring(LocalPlayer)
-    function Decode(W) return Services.HttpService:JSONDecode(W) end
-    function Encode(W) return Services.HttpService:JSONEncode(W) end
-    function Storage.Set(W, h, X) W.Data[h] = X end
-    function Storage.Get(W, h) return W.Data[h] end
-    function Storage.Save(W) writefile(k, Encode(W.Data)) end
-    if not isfile(k) then
-        writefile(k, "{}")
-        task.wait(1)
-    end
-    Storage.Data = {}
-    pcall(function() Storage.Data = Decode(readfile(k) or '{}') end)
-    spawn(function() while task.wait(Storage.WRITE_DELAY) do Storage:Save() end end)
+    -- Storage đã được khởi tạo ở trên, không khởi tạo lại
     CreateTraceback('Initalize', "Initalizing script..")
     local k = {}
     SetTask("MainTask", 'n/a')
@@ -2869,23 +2949,23 @@ function VNTKLOGIC()
     ParsingTimes = 0
     function RefreshTasksData()
         if _G.Stop then return end
-        for W, W in TasksOrder do
-            local h = FunctionsHandler[W]
+        for _, taskName in ipairs(TasksOrder) do
+            local h = FunctionsHandler[taskName]
             if not h.Initalized then
-                if not k[W] then
-                    k[W] = true
+                if not k[taskName] then
+                    k[taskName] = true
                 end
             else
-                local k = h.Methods.Refresh
-                local X = h.Methods.Start
-                if k then
-                    local h = k:Call(ParsingTimes < 100)
+                local refreshFn = h.Methods.Refresh
+                local startFn = h.Methods.Start
+                if refreshFn then
+                    local h = refreshFn:Call(ParsingTimes < 100)
                     ParsingTimes = ParsingTimes + 1
                     if h and ParsingTimes > 100 then
-                        CurrentTask = CurrentTask ~= W
-                        CurrentTask = W
-                        ScriptStorage.Interface.SetText('DebugLine', W)
-                        X:Call(h)
+                        CurrentTask = CurrentTask ~= taskName
+                        CurrentTask = taskName
+                        ScriptStorage.Interface.SetText('DebugLine', taskName)
+                        startFn:Call(h)
                         return
                     end
                 end
@@ -2964,7 +3044,7 @@ function VNTKLOGIC()
         end
         if not AnimationDelay or os.time() - AnimationDelay > 60 then
             AnimationDelay = os.time()
-            LocalPlayer.Character:WaitForChild('Humanoid'):LoadAnimation(K):Play()
+            LocalPlayer.Character:WaitForChild('Humanoid'):LoadAnimation(Anim):Play()
         end
         FunctionsHandler.MeleesController.Methods.Start:Call()
         local J, r = xpcall(RefreshTasksData, debug.traceback)

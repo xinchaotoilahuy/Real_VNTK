@@ -136,10 +136,9 @@ local function CreateUI()
     MainTaskLabel.Text = "Main: Farm"
     MainTaskLabel.TextColor3 = Color3.fromRGB(232,188,99)
     MainTaskLabel.TextTransparency = 0
-    MainTaskLabel.TextSize = 20  -- tăng cỡ chữ
+    MainTaskLabel.TextSize = 20
     MainTaskLabel.TextXAlignment = Enum.TextXAlignment.Center
     MainTaskLabel.TextYAlignment = Enum.TextYAlignment.Center
-    -- Thêm UIScale để co giãn theo khung chính
     local scaleMain = Instance.new("UIScale")
     scaleMain.Parent = MainTaskLabel
 
@@ -174,10 +173,9 @@ local function CreateUI()
     SubTaskLabel.Text = "Sub: Idle"
     SubTaskLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
     SubTaskLabel.TextTransparency = 0
-    SubTaskLabel.TextSize = 18  -- tăng cỡ chữ
+    SubTaskLabel.TextSize = 18
     SubTaskLabel.TextXAlignment = Enum.TextXAlignment.Center
     SubTaskLabel.TextYAlignment = Enum.TextYAlignment.Center
-    -- Thêm UIScale
     local scaleSub = Instance.new("UIScale")
     scaleSub.Parent = SubTaskLabel
 
@@ -384,11 +382,9 @@ function refreshDisplay()
     pcall(function()
         UI.MainTaskLabel.Text = "Main: " .. tostring(_G.currentMainTask or "Farm")
         UI.SubTaskLabel.Text = "Sub: " .. tostring(_G.currentSubTask or "Idle")
-        -- Scale theo kích thước màn hình
         if UI.MainFrame and UI.MainFrame.AbsoluteSize then
             local w = UI.MainFrame.AbsoluteSize.X
-            local newScale = math.clamp(w / 1000, 0.5, 2.2)  -- tăng max lên 1.8 nếu muốn to hơn
-            -- Cập nhật scale cho MainTaskLabel và SubTaskLabel
+            local newScale = math.clamp(w / 1000, 0.5, 2.2)
             for _, child in ipairs(UI.MainTaskLabel:GetChildren()) do
                 if child:IsA("UIScale") then child.Scale = newScale end
             end
@@ -400,7 +396,6 @@ function refreshDisplay()
                 UI.Shadow.Size = UDim2.new(UI.MainFrame.Size.X.Scale, UI.MainFrame.Size.X.Offset + extra*2, UI.MainFrame.Size.Y.Scale, UI.MainFrame.Size.Y.Offset + extra*2)
             end
         end
-        -- Cập nhật các label bên trái
         for _, child in ipairs(UI.LeftScroller:GetChildren()) do
             if child:IsA("TextLabel") then
                 if string.match(child.Text, "Level:") then
@@ -430,7 +425,6 @@ function refreshDisplay()
 end
 _G.refreshDisplay = refreshDisplay
 
--- Tạo các label cố định bên trái
 local function CreateStatLabel(parent, text, layoutOrder)
     local lbl = Instance.new('TextLabel')
     lbl.Parent = parent
@@ -622,14 +616,12 @@ function VNTKLOGIC()
     setmetatable(ScriptStorage.NPCs, {__index = function(J, J) if not J then return end; return workspace.NPCs:FindFirstChild(J) or game.ReplicatedStorage.NPCs:FindFirstChild(J) end})
     function CreateTraceback(J, W) table.insert(ScriptStorage.Tracebacks, (GetCurrentDateTime() .. ' ( ' .. DispTime(os.time() - os.time(), true) .. ' ) after execution | ' .. J .. " | " .. W)) end
 
-    -- HÀM SETTASK (cập nhật cả MainTask và SubTask cho UI)
     function SetTask(J, W)
         if ScriptStorage.Task[J] == W then return end
         local a = {MainTask = "Task1", SubTask = 'Task2'}
         if a[J] then if SetText then SetText(a[J], J .. ' : ' .. W) end end
         ScriptStorage.Task[J] = W
         ScriptStorage.Task[J .. '-d'] = os.time()
-        -- Cập nhật UI
         if J == "MainTask" then
             _G.currentMainTask = W
         elseif J == "SubTask" then
@@ -1088,6 +1080,7 @@ function VNTKLOGIC()
             if CaculateDistance(W) > 60 then return TweenController.Create(W) and task.wait(1) end
             local W = require(game.ReplicatedStorage.Modules.Net)
             W:RemoteFunction('SubmarineWorkerSpeak'):InvokeServer('TravelToSubmergedIsland')
+task.wait(1)
         end
         a = CFrame.new(a.Position)
         local W = CaculateDistance(game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame, a)
@@ -1542,8 +1535,16 @@ function VNTKLOGIC()
                     SetTask('MainTask', 'Sea Travel | Teleporting to Third Sea')
                 end
             elseif X >= 700 and SeaIndex == 1 then
-                SetTask('MainTask', 'Sea Travel | Teleporting to Second Sea')
-                Remotes.CommF_:InvokeServer("TravelDressrosa")
+                -- === SỬA: GỌI PUZZLE THAY VÌ TELEPORT TRỰC TIẾP ===
+                SetTask('MainTask', 'Sea Travel | Running Dressrosa Puzzle')
+                if FunctionsHandler.SecondSeaPuzzle and FunctionsHandler.SecondSeaPuzzle.Initalized then
+                    FunctionsHandler.SecondSeaPuzzle.Methods.Start:Call()
+                else
+                    -- Fallback an toàn
+                    Remotes.CommF_:InvokeServer("TravelDressrosa")
+                    SetTask('MainTask', 'Sea Travel | Teleporting to Second Sea (fallback)')
+                end
+                -- === KẾT THÚC SỬA ===
             end
         end
         if ScriptStorage.Tools['God\'s Chalice'] and not ScriptStorage.Tools['Mirror Fractal'] then
@@ -1863,49 +1864,105 @@ function VNTKLOGIC()
             ScriptStorage.ForceToUseSword = FarmingItem
         end
     end)
+
+    -- ==================== SỬA LẠI SECOND SEA PUZZLE ====================
     FunctionsHandler.SecondSeaPuzzle:RegisterMethod('Refresh', function()
         if ScriptStorage.PlayerData.Level < 700 or SeaIndex ~= 1 then return end
         if FunctionsHandler.SecondSeaPuzzle:Get('IsCompleted') then return end
-        local k = Remotes.CommF_:InvokeServer('DressrosaQuestProgress')
-        print(959, k.TalkedDetective, k.KilledIceBoss)
-        if not k.TalkedDetective then Result = 1
-        elseif not k.KilledIceBoss then
-            if ScriptStorage.Enemies.Jeremy then Result = 2 end
+
+        local progress = Remotes.CommF_:InvokeServer("DressrosaQuestProgress")
+        if not progress then return end
+
+        local result = nil
+        if not progress.TalkedDetective then
+            result = 1
+        elseif not progress.KilledIceBoss then
+            result = 2
         else
             FunctionsHandler.SecondSeaPuzzle:Set("IsCompleted", true)
+            result = nil
         end
-        FunctionsHandler.SecondSeaPuzzle:Set("CurrentProgressLevel", Result)
-        FunctionsHandler.SecondSeaPuzzle:Set('LastestRefreshSenque', os.time())
-        return Result
+
+        FunctionsHandler.SecondSeaPuzzle:Set("CurrentProgressLevel", result)
+        FunctionsHandler.SecondSeaPuzzle:Set("LastestRefreshSenque", os.time())
+        return result
     end)
+
     FunctionsHandler.SecondSeaPuzzle:RegisterMethod("Start", function()
-        local k, h = FunctionsHandler.SecondSeaPuzzle:Get('CurrentProgressLevel'), FunctionsHandler.SecondSeaPuzzle:Get('LastestRefreshSenque')
-        FunctionsHandler.SecondSeaPuzzle:Set('CurrentProgressLevel', nil)
-        if not k then
-            FunctionsHandler.SecondSeaPuzzle.Methods.Refresh:Call()
-            return FunctionsHandler.SecondSeaPuzzle.Methods.Start:Call()
-        elseif k == 1 then
-            SetTask('MainTask', "Auto Second Sea - Talk To Detective")
-            Remotes.CommF_:InvokeServer('DressrosaQuestProgress', 'Detective')
-            task.wait(1)
-            Remotes.CommF_:InvokeServer('DressrosaQuestProgress', 'UseKey')
-        elseif k == 2 then
-            SetTask("MainTask", "Auto Second Sea - Defeating Ice Admiral")
-            Remotes.CommF_:InvokeServer("DressrosaQuestProgress", "Detective")
-            task.wait(1)
-            Remotes.CommF_:InvokeServer('DressrosaQuestProgress', 'UseKey')
-            task.wait(1)
-            CombatController.Attack("Ice Admiral")
-            repeat
-                task.wait(1)
-            until not workspace.Enemies:FindFirstChild("Ice Admiral") or not game:GetService("Workspace").NPCs:FindFirstChild("Ice Admiral")
-            SetTask('MainTask', "Auto Second Sea - Talk To Detective Again")
-            Remotes.CommF_:InvokeServer('DressrosaQuestProgress', 'Detective')
-            task.wait(1)
-            SetTask('MainTask', "Traveling to Second Sea...")
-            Remotes.CommF_:InvokeServer('TravelDressrosa')
+        local progress = Remotes.CommF_:InvokeServer("DressrosaQuestProgress")
+        if not progress then
+            SetTask('MainTask', 'Second Sea Puzzle | Error: Cannot get progress')
+            return
         end
+
+        -- Đã hoàn thành -> teleport
+        if progress.KilledIceBoss then
+            SetTask('MainTask', 'Second Sea Puzzle | Teleporting to Dressrosa')
+            Remotes.CommF_:InvokeServer("TravelDressrosa")
+            FunctionsHandler.SecondSeaPuzzle:Set("IsCompleted", true)
+            return
+        end
+
+        -- Bước 1: Nói chuyện Detective + dùng Key
+        if not progress.TalkedDetective then
+            SetTask('MainTask', 'Second Sea Puzzle | Talking to Detective')
+            Remotes.CommF_:InvokeServer('DressrosaQuestProgress', 'Detective')
+            task.wait(1)
+            Remotes.CommF_:InvokeServer('DressrosaQuestProgress', 'UseKey')
+            task.wait(1)
+            return FunctionsHandler.SecondSeaPuzzle.Methods.Start:Call()
+        end
+
+        -- Bước 2: Đánh Ice Admiral (nếu chưa)
+        if not progress.KilledIceBoss then
+            SetTask('MainTask', 'Second Sea Puzzle | Defeating Ice Admiral')
+            -- Đảm bảo key đã dùng (call lại để chắc chắn)
+            Remotes.CommF_:InvokeServer('DressrosaQuestProgress', 'Detective')
+            task.wait(1)
+            Remotes.CommF_:InvokeServer('DressrosaQuestProgress', 'UseKey')
+            task.wait(1)
+
+            -- Tìm boss
+            local boss = nil
+            for _, v in pairs(workspace.Enemies:GetChildren()) do
+                if v.Name == "Ice Admiral" and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                    boss = v
+                    break
+                end
+            end
+
+            if boss then
+                -- Đánh boss
+                CombatController.Attack("Ice Admiral")
+                -- Chờ boss chết hoặc biến mất
+                local timeout = os.time() + 120
+                repeat
+                    task.wait(2)
+                    progress = Remotes.CommF_:InvokeServer("DressrosaQuestProgress")
+                    if progress and progress.KilledIceBoss then
+                        break
+                    end
+                until os.time() > timeout or not workspace.Enemies:FindFirstChild("Ice Admiral")
+            else
+                -- Nếu không thấy boss, teleport đến vị trí của nó
+                local pos = CFrame.new(1266.08948, 26.1757946, -1399.57678)
+                TweenController.Create(pos + Vector3.new(0, 10, 0))
+                task.wait(2)
+                -- Sau khi đến, gọi lại Start để kiểm tra lại
+                return FunctionsHandler.SecondSeaPuzzle.Methods.Start:Call()
+            end
+
+            -- Sau khi đánh xong, gọi lại Start để teleport
+            return FunctionsHandler.SecondSeaPuzzle.Methods.Start:Call()
+        end
+
+        -- Fallback
+        SetTask('MainTask', 'Second Sea Puzzle | Unknown state, retrying...')
+        task.wait(2)
+        FunctionsHandler.SecondSeaPuzzle.Methods.Start:Call()
     end)
+    -- ==================== KẾT THÚC SỬA PUZZLE ====================
+
     FunctionsHandler.ColosseumPuzzle:RegisterMethod("Refresh", function()
         if SeaIndex ~= 2 then return end
         if ScriptStorage.PlayerData.Level < 850 or ScriptStorage.Backpack['Warrior Helmet'] then return end

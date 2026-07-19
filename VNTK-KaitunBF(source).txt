@@ -97,7 +97,7 @@ local function CreateUI()
     Shadow.BackgroundTransparency = 1
     Shadow.Image = "rbxassetid://6014261993"
     Shadow.ImageColor3 = Color3.fromRGB(0,0,0)
-    Shadow.ImageTransparency = 0.35
+    Shadow.ImageTransparency = 0.8
     Shadow.ScaleType = Enum.ScaleType.Slice
     Shadow.SliceCenter = Rect.new(20,20,480,480)
     Shadow.ZIndex = MainFrame.ZIndex - 1

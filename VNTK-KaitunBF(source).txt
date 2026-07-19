@@ -13,7 +13,6 @@ if game.Players.LocalPlayer.Team == nil then
     end
 end
 
--- ==================== UI ====================
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Stats = game:GetService("Stats")
@@ -83,7 +82,6 @@ local function CreateUI()
     Shadow.SliceCenter = Rect.new(20,20,480,480)
     Shadow.ZIndex = MainFrame.ZIndex - 1
 
-    -- ===== STATUS FRAME CHỨA 2 BOX =====
     local StatusFrame = Instance.new('Frame')
     StatusFrame.Name = "StatusFrame"
     StatusFrame.Parent = ScreenGui
@@ -105,7 +103,6 @@ local function CreateUI()
     StatusStroke.Thickness = 2
     StatusStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
-    -- Main Task Box (đã làm đẹp)
     local MainBox = Instance.new('Frame')
     MainBox.Name = "MainBox"
     MainBox.Parent = StatusFrame
@@ -142,7 +139,6 @@ local function CreateUI()
     local scaleMain = Instance.new("UIScale")
     scaleMain.Parent = MainTaskLabel
 
-    -- Sub Task Box (đã làm đẹp)
     local SubBox = Instance.new('Frame')
     SubBox.Name = "SubBox"
     SubBox.Parent = StatusFrame
@@ -324,7 +320,6 @@ end
 local UI = CreateUI()
 _G.UI = UI
 
--- Hàm refresh account items
 _G.RefreshAccountItems = function()
     pcall(function()
         for _, child in ipairs(UI.RightScroller:GetChildren()) do
@@ -559,11 +554,9 @@ pcall(updateRace)
 pcall(updateTime)
 refreshDisplay()
 
--- ===================== PHẦN CỐT LÕI (VNTK) =====================
 function VNTKLOGIC()
     local W = {Instances = {}}
     local function SetText(J, C)
-        -- Không cần dùng
     end
     W.SetText = SetText
     W.ToggleUI = function() end
@@ -580,24 +573,20 @@ function VNTKLOGIC()
     getgenv().alert = function(a, h)
         pcall(function() J:Notify({Title = a or '', Content = h or '', Duration = 5}) end)
     end
-    print("VNTK X NOTIFICATION", "Endpoint reached")
     OldSessionTime = isfile('.tdif-' .. game.Players.LocalPlayer.Name) and tonumber(readfile(".tdif-" .. game.Players.LocalPlayer.Name)) or 0
     repeat
         task.wait()
         game.ReplicatedStorage.Remotes.CommF_:InvokeServer("SetTeam", Config.Team)
     until game.Players.LocalPlayer.Character
-    print("Team Choose " .. Config.Team)
     repeat task.wait() until game.Players.LocalPlayer.Character
     spawn(function()
         game:GetService("Players").LocalPlayer.PlayerScripts:WaitForChild('NewIslandLOD', 9999):Destroy()
         game:GetService("Players")
         LocalPlayer.PlayerScripts:WaitForChild('IslandLOD', 9999):Destroy()
     end)
-    print('WAIT LOAD KAITUN 1', 'ok')
     local J = {'RawConstants', "Utilly", "QuestManager", 'SpawnRegionLoader', 'TweenController', "AttackController", 'CombatController', 'FunctionsHandler', "Hooks", "Debug", "Hop", "Storage"}
     StartTick = tick()
     repeat task.wait() until SetText
-    print('WAIT LOAD KAITUN 2')
     SetText('MainTextLabel', 'Initalizing Script..')
     local J = "Rua_Hub/Blox_Fruit/Assets/"
     ScriptStorage = {IsInitalized = false, PlayerData = {}, Melees = {}, CurrentMeleeData = {}, Enemies = {}, Tools = {}, Backpack = {}, IgnoreStoreFruits = {}, Connections = {LocalPlayer = {}}, Task = {}, Tracebacks = {}, TaskController = {}, TracebackUpdater = {}, Interface = W, NPCs = {}, Map = {}}
@@ -635,11 +624,9 @@ function VNTKLOGIC()
     local J = {}
     setmetatable(Remotes, {__index = function(W, W)
         if W ~= 'CommF_' then
-            print('captured unregistered signal', key)
             return Services.ReplicatedStorage.Remotes[W]
         end
         local W = {InvokeServer = function(a, ...)
-            print('remote fired', ...)
             local a, h = ...
             if string.find(a, "Buy") == 1 and not h then
                 local h = string.gsub(a, 'Buy', "")
@@ -725,7 +712,6 @@ function VNTKLOGIC()
                 ScriptStorage.Connections.BurstCheck:Disconnect()
                 task.wait(1)
             end
-            print('[ Debug ] Registering burst', W)
             ScriptStorage.Connections.BurstCheck = W.Cooldown:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
                 if EnablingBurstDebounce and os.time() - EnablingBurstDebounce < 10 then return end
                 local a = W.Cooldown.AbsoluteSize.X
@@ -752,7 +738,6 @@ function VNTKLOGIC()
         if _G.RefreshAccountItems then _G.RefreshAccountItems() end
     end
     function MeleeCheck(W)
-        print('Melee check', W)
         if W and typeof(W) == "Instance" and W:IsA("Tool") then
             if W.ToolTip == "Melee" then
                 if ScriptStorage.Connections.Melees then ScriptStorage.Connections.Melees:Disconnect() end
@@ -814,7 +799,6 @@ function VNTKLOGIC()
     end
     RegisterLocalPlayerEventsConnection(LocalPlayer)
     game.Players.LocalPlayer.CharacterAdded:Connect(function(W)
-        print('[ Debug ] re-registering events')
         RegisterLocalPlayerEventsConnection(LocalPlayer)
     end)
     task.spawn(function()
@@ -822,7 +806,6 @@ function VNTKLOGIC()
         if LocalPlayer.Character:FindFirstChild("HasBuso") then return end
         Remotes.CommF_:InvokeServer("Buso")
     end)
-    print(1)
     MeleesTable = {"Black Leg", 'Electro', "Fishman Karate", "Dragon Claw", "Superhuman", 'Death Step', 'Electric Claw', 'Sharkman Karate', 'Dragon Talon', "Godhuman", "SanguineArt"}
     MeleesId = {'BlackLeg', "Electro", 'FishmanKarate', "DragonClaw", "Superhuman", 'DeathStep', "ElectricClaw", "SharkmanKarate", 'DragonTalon', 'Godhuman', "SanguineArt"}
     MeleePrices = {["Black Leg"] = {Price = {Beli = 150000}, Id = "BlackLeg", NextLevelRequirement = 400, position = CFrame.new(), Requirements = function() return true end, Buy = function(W) return BuyMelee("BlackLeg", W) end}, ['Electro'] = {Price = {Beli = 500000}, Id = 'Electro', NextLevelRequirement = 400, Requirements = function() return true end, Buy = function(W) return BuyMelee('Electro', W) end}, ['Fishman Karate'] = {Price = {Beli = 750000}, NextLevelRequirement = 400, Requirements = function() return true end, Buy = function(W) return BuyMelee('FishmanKarate', W) end}, ['Dragon Claw'] = {Price = {Fragments = 1500}, NextLevelRequirement = 400, Requirements = function() return true end, Buy = function(W) return BuyMelee("DragonClaw", W) end}, ["Superhuman"] = {Price = {Beli = 3000000}, NextLevelRequirement = 400, Requirements = function() return true end, Buy = function(W) return BuyMelee("Superhuman", W) end}, ["Death Step"] = {Price = {Beli = 2500000, Fragments = 5000}, NextLevelRequirement = 400, Requirements = function() return true end, Buy = function(W) return BuyMelee("DeathStep", W) end}, ['Sharkman Karate'] = {Price = {Beli = 2500000, Fragments = 5000}, NextLevelRequirement = 400, Requirements = function() return true end, Buy = function(W) return BuyMelee('SharkmanKarate', W) end}, ['Electric Claw'] = {Price = {Beli = 2500000, Fragments = 5000}, NextLevelRequirement = 400, Requirements = function() return true end, Buy = function(W) return BuyMelee("ElectricClaw", W) end}, ['Dragon Talon'] = {Price = {Beli = 2500000, Fragments = 5000}, NextLevelRequirement = 400, Requirements = function() return true end, Buy = function(W) return BuyMelee("DragonTalon", W) end}, ["Godhuman"] = {Price = {Beli = 5000000, Fragments = 5000}, NextLevelRequirement = 350, Requirements = function() return true end, Buy = function(W) return BuyMelee("Godhuman", W) end}}
@@ -917,7 +900,6 @@ function VNTKLOGIC()
         table.sort(W, function(a, h) return CaculateDistance(a.HumanoidRootPart.CFrame) < CaculateDistance(h.HumanoidRootPart.CFrame) end)
         return W
     end
-    print(1.5)
     function GetMeleeIdByName(W) for a, h in MeleesTable do if h == W then return MeleesId[a] end end end
     function getpos(W)
         for a, a in game:GetService("ReplicatedStorage").NPCs:GetChildren() do if a.Name == W then return a.HumanoidRootPart.CFrame end end
@@ -933,7 +915,6 @@ function VNTKLOGIC()
         end
         if a then
             local a = Remotes.CommF_:InvokeServer('Buy' .. W, true)
-            print("Response_", a == 1, typeof(a))
             if type(a) == 'number' and not table.find(J, W) then table.insert(J, W) end
             return a == 1
         end
@@ -968,7 +949,6 @@ function VNTKLOGIC()
     function J.RefreshQuest(W)
         while not ScriptStorage.PlayerData.Level do
             task.wait(1)
-            print('[ Debug ] Waiting for LocalPlayer datas.')
         end
         local a = 0
         local h
@@ -995,7 +975,6 @@ function VNTKLOGIC()
     end
     function J.MarkAsCompleted(W) W.CurrentLevel = W.CurrentLevel == 2 and 1 or 2 end
     function J.AbandonQuest()
-        print('Abandon Quest')
         Remotes.CommF_:InvokeServer("AbandonQuest")
     end
     function J.GetCurrentClaimQuest(W)
@@ -1037,7 +1016,8 @@ function VNTKLOGIC()
         end
         if X then
             Remotes.CommF_:InvokeServer("requestEntrance", X)
-            return task.wait()
+            task.wait()
+            task.wait(1)
         end
     end
     function GetEntries(a)
@@ -1071,7 +1051,6 @@ function VNTKLOGIC()
         if CaculateDistance(a) > 500 then
             if SeaIndex == 3 and not ScriptStorage.Backpack['Valkyrie Helm'] then
             elseif SeaIndex ~= 3 then
-                print(a)
                 GetPortal(a)
             end
         end
@@ -1080,7 +1059,7 @@ function VNTKLOGIC()
             if CaculateDistance(W) > 60 then return TweenController.Create(W) and task.wait(1) end
             local W = require(game.ReplicatedStorage.Modules.Net)
             W:RemoteFunction('SubmarineWorkerSpeak'):InvokeServer('TravelToSubmergedIsland')
-task.wait(1)
+            task.wait(1)
         end
         a = CFrame.new(a.Position)
         local W = CaculateDistance(game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame, a)
@@ -1264,7 +1243,6 @@ task.wait(1)
                         if MonResult.Name ~= "Core" then
                             if ScriptStorage.PlayerData.Level > 100 and w >= CombatController.MAX_ATTACK_DURATION_2 and C.Health - C.MaxHealth == 0 then
                                 SetTask('SubTask', 'Hop Server - Mob Health Unchanged ( ' .. C.Health .. ' / ' .. C.MaxHealth .. ')')
-                                print("stuck", "Mob health unchanged")
                                 _G.Stop = true
                                 game.Players.LocalPlayer:Kick('Rejoining..')
                             end
@@ -1275,7 +1253,6 @@ task.wait(1)
                                     MonResult:SetPrimaryPartCFrame(CFrame.new(D))
                                     MonResult:SetAttribute('IgnoreGrab', true)
                                     MonResult:SetAttribute('FailureCount', (MonResult:GetAttribute("FailureCount") or 0) + 1)
-                                    print('Failed to attack', "Returning to the old posiiton ( #" .. MonResult:GetAttribute("FailureCount") .. " )")
                                     MonResult.HumanoidRootPart.CFrame = (CFrame.new(D))
                                     task.wait()
                                     return
@@ -1299,14 +1276,12 @@ task.wait(1)
                             w = w + 1
                         end
                         if h > 30 and MonResult.Name ~= "Core" then
-                            print("Take more than 30s to attack, canceling")
                             break
                         end
                     end
                 end
             elseif not X then
                 if (os.time() - LastFound) > 200 then
-                    print('AMETHYST HUB', 'Error while farming, rejoin')
                     game.Players.LocalPlayer:Kick('Rejoining..')
                     return
                 end
@@ -1331,7 +1306,6 @@ task.wait(1)
     LevelFarmTTL = 0
     LastTravel = os.time()
     FunctionsHandler = {Initalized = false}
-    print(3000)
     setmetatable(FunctionsHandler, {__index = function(h, X)
         QueryResult = rawget(h, X)
         if not QueryResult then
@@ -1468,14 +1442,11 @@ task.wait(1)
             if (ScriptStorage.Backpack.Bones or {Count = 0}).Count >= 50 then
                 if os.time() > (BonesCooldown or 0) then
                     local X, X, X, w = Remotes.CommF_:InvokeServer("Bones", 'Check')
-                    print("State", X, "Message", w)
                     if tonumber(X or 1) == 0 then
                         local X = Split(w, ":")
                         local w = ((tonumber(X[1]) * 60) + tonumber(X[2])) * 60
                         BonesCooldown = os.time() + w
-                        print('Next', BonesCooldown)
                     else
-                        print('Roll')
                         Remotes.CommF_:InvokeServer('Bones', 'Buy', 1, 1)
                     end
                 end
@@ -1494,7 +1465,6 @@ task.wait(1)
             end)()
             if w then
                 if SeaIndex ~= D[2] then
-                    print('Material - ' .. w, "Travelling sea " .. D[2])
                     SetTask("MainTask", 'Sea Travel | Godhuman Materials | Travelling to Sea ' .. D[2])
                     Remotes.CommF_:InvokeServer("Travel" .. SeaIndexes[D[2]])
                     return
@@ -1535,16 +1505,13 @@ task.wait(1)
                     SetTask('MainTask', 'Sea Travel | Teleporting to Third Sea')
                 end
             elseif X >= 700 and SeaIndex == 1 then
-                -- === SỬA: GỌI PUZZLE THAY VÌ TELEPORT TRỰC TIẾP ===
                 SetTask('MainTask', 'Sea Travel | Running Dressrosa Puzzle')
                 if FunctionsHandler.SecondSeaPuzzle and FunctionsHandler.SecondSeaPuzzle.Initalized then
                     FunctionsHandler.SecondSeaPuzzle.Methods.Start:Call()
                 else
-                    -- Fallback an toàn
                     Remotes.CommF_:InvokeServer("TravelDressrosa")
                     SetTask('MainTask', 'Sea Travel | Teleporting to Second Sea (fallback)')
                 end
-                -- === KẾT THÚC SỬA ===
             end
         end
         if ScriptStorage.Tools['God\'s Chalice'] and not ScriptStorage.Tools['Mirror Fractal'] then
@@ -1572,7 +1539,6 @@ task.wait(1)
                     if not string.find(D, "Cookie") then J.AbandonQuest()
                     else Remotes.CommF_:InvokeServer('CakePrinceSpawner'); return end
                 else
-                    print('Start Quest')
                     local w = ScriptStorage.NPCs["Cake Quest Giver 1"]
                     w = w and w:GetModelCFrame()
                     if w then
@@ -1586,7 +1552,6 @@ task.wait(1)
                     return
                 end
             end
-            print("attack ohoo")
             return
         end
         if X >= 2025 and (getsenv(game.ReplicatedStorage.GuideModule)._G.ServerData.ExpBoost == 0 or X <= MaxLevel) and (ScriptStorage.Backpack.Bones or {Count = 0}).Count < 500 then
@@ -1596,7 +1561,6 @@ task.wait(1)
                 if not string.find(CurrentClaimQuest3, 'Demonic') then J.AbandonQuest(); return
                 else CombatController.Attack({'Reborn Skeleton', "Living Zombie", "Demonic Soul", 'Posessed Mummy'}); return end
             else
-                print("StartQuest", CurrentClaimQuest3)
                 local X = ScriptStorage.NPCs["Haunted Castle Quest Giver 2"]
                 X = X and X:GetModelCFrame()
                 if X then
@@ -1656,7 +1620,6 @@ task.wait(1)
         FunctionsHandler.LocalPlayerController.Methods.ToggleAbilities:Call('Buso', SCRIPT_CONFIG.BUSO)
         FunctionsHandler.LocalPlayerController.Methods.ToggleAbilities:Call('Observation', SCRIPT_CONFIG.OBSERVATION)
     end)
-    print(3)
     FunctionsHandler.Saber:RegisterMethod('Refresh', function()
         if not Config.Items.Saber then return end
         if not Config.Items.Saber then return end
@@ -1688,7 +1651,6 @@ task.wait(1)
     end)
     FunctionsHandler.Saber:RegisterMethod('Start', function()
         local h, X = FunctionsHandler.Saber:Get("CurrentProgressLevel"), FunctionsHandler.Saber:Get('LastestRefreshSenque')
-        print("[ Debug ] Saber quest indexes", h)
         if not h then
             FunctionsHandler.Saber.Methods.Refresh:Call()
             return FunctionsHandler.Saber.Methods.Start:Call()
@@ -1749,23 +1711,18 @@ task.wait(1)
                 local w = CanPurchase[X]
                 if not w then
                     CanPurchase[X] = Data.Buy(1)
-                    print("CanBuy", X, Data.Buy(1))
                 end
                 local w = CanPurchase[X]
                 if not Data then
-                    print('no m1 data')
                     break
                 end
                 if X == "Dragon Talon" then
                     IsFireEssenceGave = (function()
                         if IsFireEssenceGave ~= nil then return IsFireEssenceGave end
                         local D = Remotes.CommF_:InvokeServer('BuyDragonTalon', true)
-                        print('Dragon Talon Purchased', tostring(typeof(D) ~= "string"))
                         return typeof(D) ~= 'string' and true or false
                     end)()
-                    print("IsFireEssenceGave", IsFireEssenceGave)
                     if not IsFireEssenceGave then
-                        print('no fire essence provided')
                         break
                     end
                 end
@@ -1786,7 +1743,7 @@ task.wait(1)
                     local D = GetMeleeIdByName(X)
                     local y = ScriptStorage.PlayerData
                     local L = true
-                    if not D then return print('[ Debug ] Failed to get melee id of', X) end
+                    if not D then return end
                     MSet = false
                     if not w then
                         for w, D in Data.Price do
@@ -1803,7 +1760,6 @@ task.wait(1)
                     if not MSet and ScriptStorage.Melees[X] and ScriptStorage.Melees[X] < Data.NextLevelRequirement then
                         SetTask('SubTask', "Farming Until Enough Mastery For " .. X .. ' ( ' .. ScriptStorage.Melees[X] .. ' / ' .. Data.NextLevelRequirement .. " )")
                         if not ScriptStorage.Tools[X] then
-                            print('no m1 found, buy')
                             Data.Buy()
                         end
                         return
@@ -1811,7 +1767,6 @@ task.wait(1)
                     if not FirstCall then
                         if L and Data.Requirements() and not ScriptStorage.Tools[X] then
                             if X == "Dragon Talon" and not IsFireEssenceGave then
-                                print('IsFireEssenceGave', tostring(IsFireEssenceGave))
                                 return SetTask("SubTask", 'Waiting until have fire essence for dragon talon.')
                             end
                             Data.Buy()
@@ -1820,7 +1775,6 @@ task.wait(1)
                                 task.wait()
                                 if not ScriptStorage.Tools[X] then
                                     if (X == 'Death Step' or X == "Sharkman Karate") and SeaIndex ~= 2 then
-                                        print("Go Back To Second Sea", "Water Key / Library Key")
                                         Remotes.CommF_:InvokeServer("TravelDressrosa")
                                     end
                                 else
@@ -1864,46 +1818,32 @@ task.wait(1)
             ScriptStorage.ForceToUseSword = FarmingItem
         end
     end)
-
-    -- ==================== SỬA LẠI SECOND SEA PUZZLE ====================
     FunctionsHandler.SecondSeaPuzzle:RegisterMethod('Refresh', function()
         if ScriptStorage.PlayerData.Level < 700 or SeaIndex ~= 1 then return end
         if FunctionsHandler.SecondSeaPuzzle:Get('IsCompleted') then return end
-
-        local progress = Remotes.CommF_:InvokeServer("DressrosaQuestProgress")
-        if not progress then return end
-
-        local result = nil
-        if not progress.TalkedDetective then
-            result = 1
-        elseif not progress.KilledIceBoss then
-            result = 2
+        local k = Remotes.CommF_:InvokeServer('DressrosaQuestProgress')
+        if not k.TalkedDetective then Result = 1
+        elseif not k.KilledIceBoss then
+            if ScriptStorage.Enemies.Jeremy then Result = 2 end
         else
             FunctionsHandler.SecondSeaPuzzle:Set("IsCompleted", true)
-            result = nil
         end
-
-        FunctionsHandler.SecondSeaPuzzle:Set("CurrentProgressLevel", result)
-        FunctionsHandler.SecondSeaPuzzle:Set("LastestRefreshSenque", os.time())
-        return result
+        FunctionsHandler.SecondSeaPuzzle:Set("CurrentProgressLevel", Result)
+        FunctionsHandler.SecondSeaPuzzle:Set('LastestRefreshSenque', os.time())
+        return Result
     end)
-
     FunctionsHandler.SecondSeaPuzzle:RegisterMethod("Start", function()
         local progress = Remotes.CommF_:InvokeServer("DressrosaQuestProgress")
         if not progress then
             SetTask('MainTask', 'Second Sea Puzzle | Error: Cannot get progress')
             return
         end
-
-        -- Đã hoàn thành -> teleport
         if progress.KilledIceBoss then
             SetTask('MainTask', 'Second Sea Puzzle | Teleporting to Dressrosa')
             Remotes.CommF_:InvokeServer("TravelDressrosa")
             FunctionsHandler.SecondSeaPuzzle:Set("IsCompleted", true)
             return
         end
-
-        -- Bước 1: Nói chuyện Detective + dùng Key
         if not progress.TalkedDetective then
             SetTask('MainTask', 'Second Sea Puzzle | Talking to Detective')
             Remotes.CommF_:InvokeServer('DressrosaQuestProgress', 'Detective')
@@ -1912,17 +1852,12 @@ task.wait(1)
             task.wait(1)
             return FunctionsHandler.SecondSeaPuzzle.Methods.Start:Call()
         end
-
-        -- Bước 2: Đánh Ice Admiral (nếu chưa)
         if not progress.KilledIceBoss then
             SetTask('MainTask', 'Second Sea Puzzle | Defeating Ice Admiral')
-            -- Đảm bảo key đã dùng (call lại để chắc chắn)
             Remotes.CommF_:InvokeServer('DressrosaQuestProgress', 'Detective')
             task.wait(1)
             Remotes.CommF_:InvokeServer('DressrosaQuestProgress', 'UseKey')
             task.wait(1)
-
-            -- Tìm boss
             local boss = nil
             for _, v in pairs(workspace.Enemies:GetChildren()) do
                 if v.Name == "Ice Admiral" and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
@@ -1930,11 +1865,8 @@ task.wait(1)
                     break
                 end
             end
-
             if boss then
-                -- Đánh boss
                 CombatController.Attack("Ice Admiral")
-                -- Chờ boss chết hoặc biến mất
                 local timeout = os.time() + 120
                 repeat
                     task.wait(2)
@@ -1944,25 +1876,17 @@ task.wait(1)
                     end
                 until os.time() > timeout or not workspace.Enemies:FindFirstChild("Ice Admiral")
             else
-                -- Nếu không thấy boss, teleport đến vị trí của nó
                 local pos = CFrame.new(1266.08948, 26.1757946, -1399.57678)
                 TweenController.Create(pos + Vector3.new(0, 10, 0))
                 task.wait(2)
-                -- Sau khi đến, gọi lại Start để kiểm tra lại
                 return FunctionsHandler.SecondSeaPuzzle.Methods.Start:Call()
             end
-
-            -- Sau khi đánh xong, gọi lại Start để teleport
             return FunctionsHandler.SecondSeaPuzzle.Methods.Start:Call()
         end
-
-        -- Fallback
         SetTask('MainTask', 'Second Sea Puzzle | Unknown state, retrying...')
         task.wait(2)
         FunctionsHandler.SecondSeaPuzzle.Methods.Start:Call()
     end)
-    -- ==================== KẾT THÚC SỬA PUZZLE ====================
-
     FunctionsHandler.ColosseumPuzzle:RegisterMethod("Refresh", function()
         if SeaIndex ~= 2 then return end
         if ScriptStorage.PlayerData.Level < 850 or ScriptStorage.Backpack['Warrior Helmet'] then return end
@@ -1975,11 +1899,9 @@ task.wait(1)
         FunctionsHandler.ColosseumPuzzle:Set("LastestRefreshSenque", os.time())
         return Result
     end)
-    print(4)
     FunctionsHandler.ColosseumPuzzle:RegisterMethod('Start', function()
         local k, h = FunctionsHandler.ColosseumPuzzle:Get("CurrentProgressLevel"), FunctionsHandler.ColosseumPuzzle:Get("LastestRefreshSenque")
         FunctionsHandler.ColosseumPuzzle:Set("CurrentProgressLevel", nil)
-        print("Progress", k)
         if not k then
             FunctionsHandler.ColosseumPuzzle.Methods.Refresh:Call()
             return FunctionsHandler.ColosseumPuzzle.Methods.Start:Call()
@@ -1998,34 +1920,25 @@ task.wait(1)
         elseif k == 3 then
             SetTask("MainTask", 'Auto Bartilo Quest - Doing Puzzle')
             if CaculateDistance(CFrame.new(-1837.46155, 44.2921753, 1656.1987, 0.999881566, -1.03885048e-22, -0.0153914848, 1.07805858e-22, 1, 2.53909284e-22, 0.0153914848, -2.55538502e-22, 0.999881566)) > 10 then
-                print("tween to")
                 TweenController.Create(CFrame.new(-1837.46155, 44.2921753, 1656.1987, 0.999881566, -1.03885048e-22, -0.0153914848, 1.07805858e-22, 1, 2.53909284e-22, 0.0153914848, -2.55538502e-22, 0.999881566))
             else
                 LocalPlayer = game.Players.LocalPlayer
                 LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-1836.0, 11, 1714)
-                print("1")
                 task.wait(.5)
                 LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-1850.49329, 13.1789551, 1750.89685)
-                print('2')
                 task.wait(1)
                 LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-1858.87305, 19.3777466, 1712.01807)
-                print("3")
                 task.wait(1)
                 LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-1803.94324, 16.5789185, 1750.89685)
                 task.wait(1)
-                print("4")
                 LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-1858.55835, 16.8604317, 1724.79541)
                 task.wait(1)
-                print('5')
                 LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-1869.54224, 15.987854, 1681.00659)
                 task.wait(1)
-                print("6")
                 LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-1800.0979, 16.4978027, 1684.52368)
                 task.wait(1)
-                print("7")
                 LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-1819.26343, 14.795166, 1717.90625)
                 task.wait(1)
-                print("8")
                 LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-1813.51843, 14.8604736, 1724.79541)
             end
         end
@@ -2157,7 +2070,6 @@ task.wait(1)
         return k or FunctionsHandler.RaidController.Methods.GetCurrentRaidIsland:Call() or CheckSpecialMicrochip()
     end)
 
-    -- Phần RaidController Start (đã có trong script)
     FunctionsHandler.RaidController:RegisterMethod("Start", function()
         if not FunctionsHandler.RaidController:Get('CurrentChip') then
             FunctionsHandler.RaidController.Methods.RefreshRaidType:Call()
@@ -2172,13 +2084,11 @@ task.wait(1)
                 local fruitForChip = FunctionsHandler.RaidController.Methods.GetRaidableFruit:Call()
                 if fruitForChip then
                     table.insert(ScriptStorage.IgnoreStoreFruits, fruitForChip.Name)
-                    print('Load Fruit', fruitForChip.Name)
                     Remotes.CommF_:InvokeServer('LoadFruit', fruitForChip.Name)
                     task.wait(1)
                     Remotes.CommF_:InvokeServer("RaidsNpc", 'Select', FunctionsHandler.RaidController:Get('CurrentChip'))
                     task.wait(2)
                 else
-                    print('Raid Error', 'No fruit to buy chip!')
                     return
                 end
             end
@@ -2205,12 +2115,10 @@ task.wait(1)
                     end
                 end
             else
-                print('Raid Error', 'Raid only available in Sea 2 and 3')
                 return
             end
 
             if not summonCFrame then
-                print('Raid Error', 'Cannot find summon location!')
                 return
             end
 
@@ -2224,20 +2132,14 @@ task.wait(1)
             if raidTimer and raidTimer.Visible == false then
                 if clickDetector then
                     fireclickdetector(clickDetector)
-                    print('Raid', 'Summoned via ClickDetector')
                 else
                     local success, err = pcall(function()
                         Remotes.CommF_:InvokeServer("RaidsNpc", "Start")
                     end)
-                    if success then
-                        print('Raid', 'Summon request sent via Remote')
-                    else
-                        print('Raid Error', 'Cannot summon raid!')
+                    if not success then
                         return
                     end
                 end
-            else
-                print('Raid', 'Raid already started or timer visible')
             end
 
             local startTime = os.time()
@@ -2247,19 +2149,16 @@ task.wait(1)
                 task.wait(1)
                 local island = FunctionsHandler.RaidController.Methods.GetCurrentRaidIsland:Call()
                 if island then
-                    print('Raid', 'Raid started!')
                     raidStarted = true
                     break
                 end
                 if raidTimer and raidTimer.Visible == true then
-                    print('Raid', 'Raid timer visible, raid started!')
                     raidStarted = true
                     break
                 end
             end
 
             if not raidStarted then
-                print('Raid Timeout', 'Raid did not start, retrying...')
                 pcall(function() Remotes.CommF_:InvokeServer("RaidsNpc", "Leave") end)
                 task.wait(2)
                 return FunctionsHandler.RaidController.Methods.Start:Call()
@@ -2313,9 +2212,7 @@ task.wait(1)
         end
     end)
     FunctionsHandler.UtillyItemsActivitation:RegisterMethod('Refresh', function()
-        print(1)
         if os.time() - timeee < 20 then return end
-        print(2)
         if not SpecialItems then
             SpecialItems = {}
             local k = {}
@@ -2324,16 +2221,12 @@ task.wait(1)
                 table.insert(SpecialItems, "Hidden Key")
                 IceAdmiralPassed = false
             end
-            print(3)
             if SeaIndex == 2 and Services.Workspace.Map.IceCastle.Hall.LibraryDoor:FindFirstChild("PhoeyuDoor") then
                 table.insert(SpecialItems, 'Library Key')
                 IceAdmiralPassed = false
             end
-            print(4)
             if IceAdmiralPassed then table.insert(k, 'Awakened Ice Admiral') end
-            print(5)
             local h = not ScriptStorage.Melees['Sharkman Karate'] and Remotes.CommF_:InvokeServer("BuySharkmanKarate", true)
-            print(6)
             SharkmanPassed = typeof(h) == 'string'
             if typeof(h) == "string" then
                 table.insert(SpecialItems, 'Water Key')
@@ -2341,14 +2234,11 @@ task.wait(1)
                 TidePassed = true
                 table.insert(k, 'Tide Keeper')
             end
-            print(7)
             if ScriptStorage.Backpack.Yama then
-                print("Elite")
                 table.insert(k, "Deandre")
                 table.insert(k, 'Urban')
                 table.insert(k, 'Diablo')
             end
-            print(8)
             local function h()
                 local X = {}
                 for w, w in BossesOrder do
@@ -2366,7 +2256,6 @@ task.wait(1)
                 end
                 return X
             end
-            print(9)
             BossesOrder = h()
             for k, h in DropItemData do
                 if not ScriptStorage.Backpack[k] and SeaIndex == h.Sea then
@@ -2376,48 +2265,37 @@ task.wait(1)
                     end
                 end
             end
-            print(10)
             if FunctionsHandler.Trevor:Get("IsCompleted") and not Storage:Get('SwanDefeated') then
-                print("Added Don Swan to boss orser list")
                 BossesOrderLevel["Don Swan"] = 1100
                 table.insert(BossesOrder, 'Don Swan')
-                print(ScriptStorage.PlayerData.Level, ScriptStorage.Enemies["Don Swan"])
                 if SeaIndex == 2 and ScriptStorage.PlayerData.Level > 1500 and not ScriptStorage.Enemies['Don Swan'] then
-                    print('hop')
-                    print("Don Swan", 'Hopping for Don Swan')
                     Hop()
                 end
             end
         end
-        print(11)
         for k, k in SpecialItems do
             if ScriptStorage.Tools[k] then
                 FunctionsHandler.UtillyItemsActivitation:Set('CurrentProgressLevel', k)
                 return k
             end
         end
-        print(12)
         if SeaIndex == 3 and (ScriptStorage.Melees["Death Step"] or 0) >= 400 and (ScriptStorage.Melees["Black Leg"] or 0) >= 400 and ScriptStorage.PlayerData.Beli >= 2500000 and ScriptStorage.PlayerData.Fragments >= 5000 and not ScriptStorage.Melees['Electric Claw'] then
             FunctionsHandler.UtillyItemsActivitation:Set('CurrentProgressLevel', "Previous Hero")
             return 'Previous Hero'
         end
-        print(13)
         if ScriptStorage.Tools["Red Key"] then
             FunctionsHandler.UtillyItemsActivitation:Set("CurrentProgressLevel", "Red Key")
             return 'Red Key'
         end
-        print(14)
         if ScriptStorage.Tools['Hallow Essence'] then
             FunctionsHandler.UtillyItemsActivitation:Set("CurrentProgressLevel", 'Soul Reaper Spawner')
             FunctionsHandler.LocalPlayerController.Methods.EquipTool:Call("Fire Essence")
             return "Soul Reaper Spawner"
         end
-        print(15)
         if ScriptStorage.Tools['Fire Essence'] then
             FunctionsHandler.UtillyItemsActivitation:Set('CurrentProgressLevel', "Uzoth")
             return 'Uzoth'
         end
-        print(16)
     end)
     FunctionsHandler.UtillyItemsActivitation:RegisterMethod('Start', function()
         local k = FunctionsHandler.UtillyItemsActivitation:Get("CurrentProgressLevel")
@@ -2431,7 +2309,6 @@ task.wait(1)
             Remotes.CommF_:InvokeServer("OpenLibrary")
             Services.Workspace.Map.IceCastle.Hall.LibraryDoor:FindFirstChild("PhoeyuDoor"):Destroy()
         elseif k == "Red Key" then
-            print('Red Key', "Submitting red key to the scienctist.")
             Remotes.CommF_:InvokeServer('CakeScientist', "Check")
             ScriptStorage.Tools["Red Key"]:Destroy()
         elseif k == 'Previous Hero' then
@@ -2445,13 +2322,11 @@ task.wait(1)
             Data.Buy(1)
             FunctionsHandler.LocalPlayerController.Methods.EquipTool:Call('Melee')
         elseif k == "Uzoth" then
-            print('Use Fire Essence')
             Remotes.CommF_:InvokeServer("BuyDragonTalon", true)
             Remotes.CommF_:InvokeServer('BuyDragonTalon')
             IsFireEssenceGave = true
             Report("Fire Essence Used")
         elseif k == "Soul Reaper Spawner" then
-            print("Use Hallow Essence")
             if CaculateDistance(workspace.Map["Haunted Castle"].Summoner.Detection.CFrame) < 100 then SpecialItems = nil end
             TweenController.Create(workspace.Map["Haunted Castle"].Summoner.Detection.CFrame)
         end
@@ -2470,14 +2345,11 @@ task.wait(1)
         if k then FunctionsHandler.Trevor:Set('Fruit', k) end
         TrevorDebounce = os.time()
         if not FunctionsHandler.Trevor:Get('IsCompleted') then
-            print('Update IsCompleted')
             FunctionsHandler.Trevor:Set('IsCompleted', (Remotes.CommF_:InvokeServer("TalkTrevor", "1") == 0))
-            print("Update IsCompleted", FunctionsHandler.Trevor:Get('IsCompleted'), Remotes.CommF_:InvokeServer("TalkTrevor", "1"), Remotes.CommF_:InvokeServer('TalkTrevor', "1") == 0)
         end
         return not FunctionsHandler.Trevor:Get("IsCompleted") and k
     end)
     FunctionsHandler.Trevor:RegisterMethod("Start", function()
-        print('[ cac ]', "Pulling fruit for trevor...")
         local k = FunctionsHandler.Trevor:Get("Fruit")
         FunctionsHandler.Trevor:Set('Fruit', nil)
         table.insert(ScriptStorage.IgnoreStoreFruits, k.Name)
@@ -2490,32 +2362,25 @@ task.wait(1)
         task.wait(1)
         FunctionsHandler.Trevor:Set('IsCompleted', true)
     end)
-    print(4)
     FunctionsHandler.ThirdSeaPuzzle:RegisterMethod("Refresh", function()
         if ScriptStorage.PlayerData.Level < 1500 or SeaIndex ~= 2 then return end
         if nil == FunctionsHandler.ThirdSeaPuzzle:Get('State') then
             ZQuestProgress = Remotes.CommF_:InvokeServer("ZQuestProgress", 'Check')
-            print('ZQuestProgress', ZQuestProgress)
             FunctionsHandler.ThirdSeaPuzzle:Set("State", ZQuestProgress == 0)
         end
         return FunctionsHandler.ThirdSeaPuzzle:Get('State')
     end)
     FunctionsHandler.ThirdSeaPuzzle:RegisterMethod('Start', function()
         local k = FunctionsHandler.ThirdSeaPuzzle:Get("State")
-        print('1093', "start")
         if k then
-            print('1095', "case test")
             repeat
                 task.wait(1)
-                print('1096', 'fire')
-                print('StartResponse', Remotes.CommF_:InvokeServer("ZQuestProgress", "Begin"))
+                Remotes.CommF_:InvokeServer("ZQuestProgress", "Begin")
             until CaculateDistance(Vector3.new(0, 0, 0)) > 20000
             task.spawn(function()
-                print("1098", "rejoin")
                 task.wait(30)
                 LocalPlayer:Kick()
             end)
-            print("attack")
             while task.wait() do CombatController.Attack("rip_indra") end
         end
     end)
@@ -2693,14 +2558,12 @@ task.wait(1)
     end)
     FunctionsHandler.Tushita:RegisterMethod('Start', function(k)
         if k == 1 then
-            print('Auto Tushita', 'Placing torches...')
             TweenController.Create(CFrame.new(5714, math.random(19, 21), 256))
             if ScriptStorage.Tools["Holy Torch"] then
                 for W = 1, 5 do Remotes.CommF_:InvokeServer("TushitaProgress", "Torch", W) end
                 return true
             end
         elseif k == 2 then
-            print("Auto Tushita", "Defeating Longma")
             CombatController.Attack("Longma")
         end
     end)
@@ -2713,25 +2576,20 @@ task.wait(1)
         local k = CdkProgess or Remotes.CommF_:InvokeServer("CDKQuest", 'Progress') or 'uwu'
         if not k or k == 'uwu' then return end
         if workspace.Map.Turtle.Cursed:FindFirstChild("Breakable") then
-            print('Cursed Dual Katana', 'Open Door')
             return {"break"}
         end
         local W = {Good = 'Tushita', Evil = 'Yama'}
         if k.Good == 4 and k.Evil == 4 then
-            print("burn 2")
             return {'burn 2'}
         end
         if k.Good == 3 or k.Evil == 3 then
-            print('burn 1')
             return {"burn"}
         end
         if k.Opened then
             for h, X in k do
                 if h ~= 'Opened' and h ~= "Finished" and X < 3 then
-                    print(h, X)
                     ScriptStorage.CdkCache = {h, X + 1}
                     if not ScriptStorage.Tools[W[h]] then Remotes.CommF_:InvokeServer('LoadItem', W[h]) end
-                    print("Cursed Dual Katana", "Start " .. tostring(W[h]) .. ' ' .. tostring(h))
                     Remotes.CommF_:InvokeServer('CDKQuest', 'StartTrial', h)
                     SetTask("MainTask", "Cursed Dual Katana - " .. tostring(W[h]) .. ' ' .. tostring(h))
                     return false
@@ -2793,17 +2651,11 @@ task.wait(1)
                     end
                 end
                 ExitDoor = k:FindFirstChild("Exit")
-                print("exit door", ExitDoor)
                 if ExitDoor then
                     PortalBrick = tostring(ExitDoor.BrickColor)
-                    print("Brick color", ExitDoor, ExitDoor.BrickColor, PortalBrick)
                 end
-            else
-                print('no island idk wt-')
             end
-            print('loop damn', PortalBrick)
         until PortalBrick == 'Olive' or PortalBrick == "Cloudy grey"
-        print('leave')
         while os.time() - DoneCdkTick > 15 do
             TweenController.Create(ExitDoor.CFrame + Vector3.new(0, math.random(1, 5), 0))
             task.wait()
@@ -2860,7 +2712,6 @@ task.wait(1)
             elseif k[2] == 3 then
                 Report("found cdk yama 3")
                 while not (os.time() - TorchEnabledTime < 100 or not ScriptStorage.Enemies["Soul Reaper"]) do
-                    print("tweening to soul reaper")
                     task.wait()
                     if FunctionsHandler.RaidController.Methods.GetCurrentRaidIsland:Call() then
                         pcall(function() LocalPlayer.Character.Humanoid.Health = 0 end)
@@ -2894,7 +2745,6 @@ task.wait(1)
             elseif k[2] == 3 then
                 repeat
                     task.wait()
-                    print('attacking cage queen')
                     CombatController.Attack("Cage Queen")
                 until os.time() - TorchEnabledTime < 10 or not ScriptStorage.Enemies['Cake Queen']
                 TweenController.Create(LocalPlayer.Character.HumanoidRootPart.CFrame)
@@ -2922,7 +2772,6 @@ task.wait(1)
     k:RegisterNotifyListener("scroll reacts", function() DoneCdkTick = os.time() end)
     k:RegisterNotifyListener("elite", function()
         FunctionsHandler.Yama:Set('EliteCount', Remotes.CommF_:InvokeServer("EliteHunter", "Progress"))
-        print("[ARYA ] ", "Elite defeated: " .. tostring(FunctionsHandler.Yama:Get("EliteCount") or 'n/a'))
     end)
     k:RegisterNotifyListener('the raid with', function()
         if ScriptStorage.PlayerData.Level < MaxLevel then return end
@@ -2941,7 +2790,6 @@ task.wait(1)
     end)
     if SeaIndex ~= 1 then end
     function IfTableHaveIndex(k) for W in k do return true end end
-    print(1)
     function GetServers()
         if LastServersDataPulled then
             if os.time() - LastServersDataPulled < 60 then return CachedServers end
@@ -2965,7 +2813,6 @@ task.wait(1)
         for w, D in h do
             table.insert(X, {JobId = w, Players = D.Count, LastUpdate = D.__LastUpdate, Region = D.Region})
         end
-        print(#X, "servers received")
         for h = 1, #X do
             while task.wait() do
                 local h = math.random(1, #X)
@@ -2973,14 +2820,12 @@ task.wait(1)
                 if ServerData then
                     if not k or ServerData.Players < k then
                         if not W or ServerData.Region == W then
-                            print("Found Server:", ServerData.JobId, "Player Count:", ServerData.Players, 'Region:', ServerData.Region)
                             break
                         end
                     end
                 end
             end
         end
-        print('Teleporting to', ServerData.JobId, "..")
         game:GetService("ReplicatedStorage"):WaitForChild('__ServerBrowser'):InvokeServer("teleport", ServerData.JobId)
     end
     LowHop = function(k, k)
@@ -2997,7 +2842,7 @@ task.wait(1)
         if #k > 0 then
             game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, k[math.random(1, #k)], game.Players.LocalPlayer)
         else
-            return print('Serverhop', "Couldn't find a server.")
+            return
         end
     end
     Storage = {WRITE_DELAY = .5, Data = {}}
@@ -3007,7 +2852,6 @@ task.wait(1)
     local k = ".storage_u_" .. tostring(LocalPlayer)
     function Decode(W) return Services.HttpService:JSONDecode(W) end
     function Encode(W) return Services.HttpService:JSONEncode(W) end
-    print(5)
     function Storage.Set(W, h, X) W.Data[h] = X end
     function Storage.Get(W, h) return W.Data[h] end
     function Storage.Save(W) writefile(k, Encode(W.Data)) end
@@ -3029,7 +2873,6 @@ task.wait(1)
             local h = FunctionsHandler[W]
             if not h.Initalized then
                 if not k[W] then
-                    print("[ Debug ] Task", Name, "is not registered yet")
                     k[W] = true
                 end
             else
@@ -3127,10 +2970,8 @@ task.wait(1)
         local J, r = xpcall(RefreshTasksData, debug.traceback)
         if not J then
             warn(r)
-            print(r)
         end
     end
 end
 
--- Chạy script
 VNTKLOGIC()

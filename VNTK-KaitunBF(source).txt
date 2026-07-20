@@ -42,7 +42,6 @@ _G.refreshDisplay = nil
 _G.RefreshAccountItems = nil
 _G.SavedMelees = _G.SavedMelees or {}
 
--- Khai báo biến toàn cục cần thiết
 TweenDebounce = false
 TweenInstance = nil
 GodHumanFlag = false
@@ -54,12 +53,6 @@ LastFire12 = 0
 SpawnReflect = 0
 AnimationDelay = 0
 EnablingBurstDebounce = 0
-FarmFruitMastery = 0
-
--- Hàm giả cho LockAimPositionTo nếu chưa có
-if not LockAimPositionTo then
-    LockAimPositionTo = function() end
-end
 
 local function CreateUI()
     local MainFrame = Instance.new('Frame')
@@ -1331,16 +1324,8 @@ task.wait(1)
                                 end
                             end
                         end
-                        if (FarmFruitMastery or math.huge) - os.time() < 3 and math.floor(MonResult.Humanoid.Health / MonResult.Humanoid.MaxHealth * 100) < 30 and not FunctionsHandler.RaidController.Methods.GetCurrentRaidIsland:Call() then
-                            TweenController.Create((p.CFrame) + Vector3.new(0, 25, 0))
-                            FunctionsHandler.LocalPlayerController.Methods.EquipTool:Call('Blox Fruit')
-                            LockAimPositionTo(MonResult.HumanoidRootPart.CFrame.p)
-                            local D = {'Z', 'X', "C", 'V'}
-                            local y = D[math.random(1, #D)]
-                            SendKey(y, .31)
-                        else
-                            FunctionsHandler.LocalPlayerController.Methods.EquipTool:Call(ScriptStorage.ForceToUseSword and 'Sword' or "Melee")
-                        end
+                        -- ĐÃ XÓA PHẦN DÙNG SKILL ZXCV VÀ FARM FRUIT MASTERY
+                        FunctionsHandler.LocalPlayerController.Methods.EquipTool:Call(ScriptStorage.ForceToUseSword and 'Sword' or "Melee")
                         W:Attack(MonResult)
                         if os.time() ~= b then
                             b = os.time()
